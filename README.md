@@ -3,7 +3,7 @@
 _pygidSIM_ calculates GIWAXS patterns from CIF files or other crystal structure descriptions.
 
 <p align="center">
-  <img src="docs/images/mlgid_logo_pygidsim.png" width="400" alt="GIDSIM">
+  <img src="https://raw.githubusercontent.com/mlgid-project/pygidSIM/main/docs/images/mlgid_logo_pygidsim.png" width="400" alt="GIDSIM">
 </p>
 
 ## Installation
@@ -116,12 +116,12 @@ atom_positions = np.array(
      [0., 0.5, 0.],
      [0., 0., 0.5],
      [0.5, 0.5, 0.5]], dtype=np.float32
-    )
+)
 
 # occupancies of the corresponding sites
 occupancy = np.array([1., 1., 1., 1., 1.], dtype=np.float32))
 
-cr = Crystal(spgr, lat_par, atoms, atom_positions, occupancy)
+cr = Crystal(lat_par, spgr, atoms, atom_positions, occupancy)
 el = GIWAXS(cr, params)
 q_2d, intensity = el.giwaxs_sim(orientation='random')
 ```
@@ -156,5 +156,5 @@ plt.show()
 ```
 
 <p align="left">
-<img width="440" height="400" src='docs/images/GIWAXS_Pattern.png'>
+<img width="440" height="400" src='https://raw.githubusercontent.com/mlgid-project/pygidSIM/main/docs/images/GIWAXS_Pattern.png'>
 </p>

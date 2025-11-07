@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from pathlib import Path
 import glob
 
 PACKAGE_NAME = 'pygidsim'
@@ -6,8 +7,10 @@ PACKAGE_NAME = 'pygidsim'
 if __name__ == '__main__':
     setup(
         name=PACKAGE_NAME,
-        version='0.1.0',
+        version='0.1.1',
         description='Simulation of wide-angle grazing-incidence diffraction patterns',
+        long_description=(Path(__file__).parent / "README.md").read_text(encoding="utf-8"),
+        long_description_content_type="text/markdown",
         author='Mikhail Romodin',
         url='https://github.com/mlgid-project/pygidSIM',
         packages=find_packages(),
