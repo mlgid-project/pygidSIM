@@ -24,6 +24,23 @@ class TestGIWAXSFromCif:
         assert len(intensity_2d) > 0, "No intensity data returned"
         assert len(mi_2d) > 0, "No MI data returned"
 
+    def test_giwaxs_sim_random_orientation_with_mi_restriction(self, cif_file, exp_parameters, mi_restriction):
+        """Test GIWAXS simulation with MI restriction."""
+        el = GIWAXSFromCif(str(cif_file), exp_parameters)
+        q_2d, intensity_2d, mi_2d = el.giwaxs.giwaxs_sim(
+            orientation='random',
+            max_mi=mi_restriction,
+            return_mi=True,
+            move_fromMW=True,
+        )
+
+        assert q_2d.shape[1] == len(intensity_2d) == len(mi_2d), \
+            f"Shape mismatch in random orientation test with MI"
+        assert abs(np.vstack(mi_2d)).max() <= abs(mi_restriction), \
+            f"MI restriction failed"
+        assert len(intensity_2d) > 0, "No intensity data returned"
+        assert len(mi_2d) > 0, "No MI data returned"
+
     def test_giwaxs_sim_specific_orientation_no_mi(self, cif_file, exp_parameters, random_orientation):
         """Test GIWAXS simulation with specific orientation without MI return."""
         el = GIWAXSFromCif(str(cif_file), exp_parameters)

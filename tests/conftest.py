@@ -86,3 +86,9 @@ def test_crystal_no_atoms():
 def random_orientation():
     """Return a random orientation vector for testing."""
     return np.array([5., 7., 1.])
+
+
+@pytest.fixture
+def mi_restriction():
+    """Return a maximum value for Miller indices."""
+    return 3

@@ -185,7 +185,7 @@ class GIWAXS:
                 self.exp.ai,
                 self.exp.database,
             ).get_intensities()
-            mi_idx[intensity < 1e-6] = False
+            mi_idx[mi_idx] &= intensity > 1e-6
             intensity = intensity[intensity > 1e-6]
 
         if orientation is None:
@@ -235,22 +235,31 @@ class GIWAXS:
                   wavelength: float,  # beam wavelength, Å
                   ):
         """Calculate powder diffraction pattern for GIWAXS"""
-        all_indices, indices_sum = GIWAXS.cluster_mask(q_1d, r=1e-2)
+        clusters = GIWAXS.cluster_mask(q_1d, r=1e-2)
+
+        counts_per_cluster = np.bincount(clusters)
+        q_1d_fin = np.bincount(clusters, weights=q_1d) / counts_per_cluster
+
         if intensity is None:
-            int_fin = np.ones_like(all_indices)
+            int_fin = np.ones_like(q_1d_fin)
         else:
             intensity_corrected = GIWAXS._lorentz_correction_1d(q_1d, intensity, wavelength)
-            int_fin = np.bincount(indices_sum, weights=intensity_corrected)
-        q_1d_fin = q_1d[all_indices]
+            int_fin = np.bincount(clusters, weights=intensity_corrected)
+
+        # remove low intensity peaks
+        int_mask = int_fin > int_fin.max() * 1e-7
+        int_fin = int_fin[int_mask]
+        q_1d_fin = q_1d_fin[int_mask]
+        clusters[~int_mask[clusters]] = -1
 
         if mi is not None:
             # concatenate "the same mi" together
+            unique_clusters = np.unique(clusters)
             mi_new = []
-            for idx, idx_sum in enumerate(indices_sum):
-                if len(mi_new) > idx_sum:
-                    mi_new[int(idx_sum)] = np.concatenate((mi_new[int(idx_sum)], mi[idx][np.newaxis]), axis=0)
+            for uc in unique_clusters:
+                if uc == -1:
                     continue
-                mi_new.append(mi[idx][np.newaxis])
+                mi_new.append(mi[clusters == uc])
             return q_1d_fin, int_fin, mi_new
 
         return q_1d_fin, int_fin, mi
@@ -270,33 +279,44 @@ class GIWAXS:
 
         # take only peaks inside q_range
         q_2d[np.abs(q_2d) < 1e-4] = 0
-        mask = ((q_2d[1] >= 0) &
-                (q_2d[1] <= q_range[1]) &
-                (q_2d[0] <= q_range[0]))
-        q_2d = q_2d[:, mask]
+        q_mask = ((q_2d[1] >= 0) &
+                  (q_2d[1] <= q_range[1]) &
+                  (q_2d[0] <= q_range[0]))
+        q_2d = q_2d[:, q_mask]
 
         if intensity is not None:
-            intensity = intensity[mask]
+            intensity = intensity[q_mask]
             intensity_corrected = GIWAXS._lorentz_correction_2d(q_2d, intensity, wavelength)
         if move_fromMW:
             q_2d = GIWAXS._move_fromMW(q_2d, wavelength)
 
-        all_indices, indices_sum = GIWAXS.cluster_mask(q_2d, r=2e-2)
+        clusters = GIWAXS.cluster_mask(q_2d, r=2e-2)
+
+        counts_per_cluster = np.bincount(clusters)
+        sum_x = np.bincount(clusters, weights=q_2d[0])
+        sum_y = np.bincount(clusters, weights=q_2d[1])
+        q_2d_fin = np.vstack((sum_x, sum_y)) / counts_per_cluster  # shape (2, peaks_num)
+
         if intensity is None:
-            int_fin = np.ones_like(all_indices)
+            int_fin = np.ones(q_2d_fin.shape[1])
         else:
-            int_fin = np.bincount(indices_sum, weights=intensity_corrected)
-        q_2d_fin = q_2d[..., all_indices]  # shape (2, peaks_num)
+            int_fin = np.bincount(clusters, weights=intensity_corrected)
+
+        # remove low intensity peaks
+        int_mask = int_fin > int_fin.max() * 1e-6
+        int_fin = int_fin[int_mask]
+        q_2d_fin = q_2d_fin[:, int_mask]
+        clusters[~int_mask[clusters]] = -1
 
         if mi is not None:
             # concatenate "the same mi" together
-            mi = mi[mask]
+            mi = mi[q_mask]
+            unique_clusters = np.unique(clusters)
             mi_new = []
-            for idx, idx_sum in enumerate(indices_sum):
-                if len(mi_new) > idx_sum:
-                    mi_new[int(idx_sum)] = np.concatenate((mi_new[int(idx_sum)], mi[idx][np.newaxis]), axis=0)
+            for uc in unique_clusters:
+                if uc == -1:
                     continue
-                mi_new.append(mi[idx][np.newaxis])
+                mi_new.append(mi[clusters == uc])
             return q_2d_fin, int_fin, mi_new
 
         return q_2d_fin, int_fin, mi
@@ -361,11 +381,10 @@ class GIWAXS:
             data = np.ones(len(row), dtype=bool)
 
             adj = coo_matrix((data, (row, col)), shape=(N, N))
-            n_clusters, labels = connected_components(adj, directed=False)
-            _, indices = np.unique(labels, return_index=True)
-            return indices, labels
+            n_clusters, labels = connected_components(adj, directed=False, return_labels=True)
         else:
-            return np.arange(N), np.arange(N)
+            labels = np.arange(N)
+        return labels
 
 
 def _create_crystal_from_base(lat_par, spgr, base, scale=None):

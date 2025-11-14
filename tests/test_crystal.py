@@ -23,6 +23,24 @@ class TestCrystalGIWAXS:
         assert len(intensity_2d) > 0, "No intensity data returned"
         assert len(mi_2d) > 0, "No MI data returned"
 
+    def test_crystal_with_occupancy_random_orientation_with_mi_restriction(self, test_crystal, exp_parameters,
+                                                                           mi_restriction):
+        """Test GIWAXS simulation with MI restriction."""
+        el = GIWAXS(test_crystal, exp_parameters)
+        q_2d, intensity_2d, mi_2d = el.giwaxs_sim(
+            orientation='random',
+            max_mi=mi_restriction,
+            return_mi=True,
+            move_fromMW=True,
+        )
+
+        assert q_2d.shape[1] == len(intensity_2d) == len(mi_2d), \
+            "Shape mismatch in crystal test with occupancy"
+        assert abs(np.vstack(mi_2d)).max() <= abs(mi_restriction), \
+            f"MI restriction failed"
+        assert len(intensity_2d) > 0, "No intensity data returned"
+        assert len(mi_2d) > 0, "No MI data returned"
+
     def test_crystal_with_occupancy_specific_orientation_no_mi(self, test_crystal, exp_parameters, random_orientation):
         """Test GIWAXS simulation with specific orientation without MI return."""
         el = GIWAXS(test_crystal, exp_parameters)

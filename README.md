@@ -119,7 +119,7 @@ atom_positions = np.array(
 )
 
 # occupancies of the corresponding sites
-occupancy = np.array([1., 1., 1., 1., 1.], dtype=np.float32))
+occupancy = np.array([1., 1., 1., 1., 1.], dtype=np.float32)
 
 cr = Crystal(lat_par, spgr, atoms, atom_positions, occupancy)
 el = GIWAXS(cr, params)

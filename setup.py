@@ -17,7 +17,7 @@ if __name__ == '__main__':
         python_requires='>=3.8',
         install_requires=[
             'numpy>=1.24.4',
-            'xrayutilities>=1.7.6',
+            'xrayutilities==1.7.10',
             'scipy>=1.10.1',
             'psutil>=5.9.0'],
         extras_require={
