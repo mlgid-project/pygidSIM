@@ -8,6 +8,12 @@ _pygidSIM_ calculates GIWAXS patterns from CIF files or other crystal structure 
 
 ## Installation
 
+### Install from PyPi
+
+```bash
+pip install pygidsim
+```
+
 ### Install from source
 
 First, clone the repository:
@@ -158,3 +164,10 @@ plt.show()
 <p align="left">
 <img width="440" height="400" src='https://raw.githubusercontent.com/mlgid-project/pygidSIM/main/docs/images/GIWAXS_Pattern.png'>
 </p>
+
+## Citation
+
+If you use this package in your research, please cite it as follows:
+
+Romodin, M., Starostin, V., Lapkin, D., Hinderhofer, A., & Schreiber, F. (2025).  
+mlgid-project/pygidSIM: v0.1.1. Zenodo. https://doi.org/10.5281/zenodo.17609569
