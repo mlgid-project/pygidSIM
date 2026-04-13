@@ -3,7 +3,7 @@ import numpy as np
 
 
 def get_unique_directions(max_index: int) -> np.ndarray:
-    """ Generate possible crystallographic orientations """
+    """Generate possible crystallographic orientations."""
     direct = np.array(_get_all_directions(max_index), dtype=np.float32)
     direct = direct[np.argsort(np.linalg.norm(direct, axis=1))]
     direct_norm = direct / np.linalg.norm(direct, axis=1)[..., np.newaxis]

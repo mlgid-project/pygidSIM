@@ -27,8 +27,19 @@ def cif_file(test_data_dir):
 def exp_parameters():
     """Return a standard ExpParameters instance for testing."""
     return ExpParameters(
-        q_xy_max=5.0,
-        q_z_max=5.0,
+        q_xy_range=(-2.0, 5.0),
+        q_z_range=(-1.0, 5.0),
+        ai=0.3,
+        en=18_000,
+    )
+
+
+@pytest.fixture
+def exp_parameters_small():
+    """Return a tiny ExpParameters instance for testing."""
+    return ExpParameters(
+        q_xy_range=(-0.1, 0.1),
+        q_z_range=(-0.02, 0.04),
         ai=0.3,
         en=18_000,
     )

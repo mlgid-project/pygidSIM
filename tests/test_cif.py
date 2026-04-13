@@ -24,6 +24,20 @@ class TestGIWAXSFromCif:
         assert len(intensity_2d) > 0, "No intensity data returned"
         assert len(mi_2d) > 0, "No MI data returned"
 
+    def test_small_giwaxs_sim_random_orientation_with_mi(self, cif_file, exp_parameters_small):
+        """Test GIWAXS simulation with small q-ranges (with random orientation and MI return)."""
+        el = GIWAXSFromCif(str(cif_file), exp_parameters_small)
+        q_2d, intensity_2d, mi_2d = el.giwaxs.giwaxs_sim(
+            orientation='random',
+            return_mi=True,
+            move_fromMW=True,
+        )
+
+        assert q_2d.shape == (2, 0), f"Expected no peaks in small q-range test, but got {q_2d.shape[1]} peaks"
+        assert intensity_2d.shape == (0,), \
+            f"Expected no intensity data in small q-range test, but got {len(intensity_2d)} entries"
+        assert len(mi_2d) == 0, f"Expected no MI data in small q-range test, but got {len(mi_2d)} entries"
+
     def test_giwaxs_sim_random_orientation_with_mi_restriction(self, cif_file, exp_parameters, mi_restriction):
         """Test GIWAXS simulation with MI restriction."""
         el = GIWAXSFromCif(str(cif_file), exp_parameters)
@@ -41,6 +55,22 @@ class TestGIWAXSFromCif:
         assert len(intensity_2d) > 0, "No intensity data returned"
         assert len(mi_2d) > 0, "No MI data returned"
 
+    def test_small_giwaxs_sim_random_orientation_with_mi_restriction(self, cif_file, exp_parameters_small,
+                                                                     mi_restriction):
+        """Test GIWAXS simulation with small q-ranges (with MI restriction)."""
+        el = GIWAXSFromCif(str(cif_file), exp_parameters_small)
+        q_2d, intensity_2d, mi_2d = el.giwaxs.giwaxs_sim(
+            orientation='random',
+            max_mi=mi_restriction,
+            return_mi=True,
+            move_fromMW=True,
+        )
+
+        assert q_2d.shape == (2, 0), f"Expected no peaks in small q-range test, but got {q_2d.shape[1]} peaks"
+        assert intensity_2d.shape == (0,), \
+            f"Expected no intensity data in small q-range test, but got {len(intensity_2d)} entries"
+        assert len(mi_2d) == 0, f"Expected no MI data in small q-range test, but got {len(mi_2d)} entries"
+
     def test_giwaxs_sim_specific_orientation_no_mi(self, cif_file, exp_parameters, random_orientation):
         """Test GIWAXS simulation with specific orientation without MI return."""
         el = GIWAXSFromCif(str(cif_file), exp_parameters)
@@ -52,6 +82,18 @@ class TestGIWAXSFromCif:
         assert q_2d.shape[1] == len(intensity_2d), \
             f"Shape mismatch in specific orientation test without MI"
         assert len(intensity_2d) > 0, "No intensity data returned"
+
+    def test_small_giwaxs_sim_specific_orientation_no_mi(self, cif_file, exp_parameters_small, random_orientation):
+        """Test GIWAXS simulation with small q-ranges (with specific orientation without MI return)."""
+        el = GIWAXSFromCif(str(cif_file), exp_parameters_small)
+        q_2d, intensity_2d = el.giwaxs.giwaxs_sim(
+            orientation=random_orientation,
+            return_mi=False,
+        )
+
+        assert q_2d.shape == (2, 0), f"Expected no peaks in small q-range test, but got {q_2d.shape[0]} peaks"
+        assert intensity_2d.shape == (0,), \
+            f"Expected no intensity data in small q-range test, but got {len(intensity_2d)} entries"
 
     def test_giwaxs_sim_powder_with_mi(self, cif_file, exp_parameters):
         """Test GIWAXS simulation with powder pattern and MI return."""
@@ -65,6 +107,19 @@ class TestGIWAXSFromCif:
             f"Shape mismatch in powder pattern test with MI"
         assert len(intensity_1d) > 0, "No intensity data returned"
         assert len(mi_1d) > 0, "No MI data returned"
+
+    def test_small_giwaxs_sim_powder_with_mi(self, cif_file, exp_parameters_small):
+        """Test GIWAXS simulation with small q-ranges (with powder pattern and MI return)."""
+        el = GIWAXSFromCif(str(cif_file), exp_parameters_small)
+        q_1d, intensity_1d, mi_1d = el.giwaxs.giwaxs_sim(
+            orientation=None,
+            return_mi=True,
+        )
+
+        assert q_1d.shape == (0,), f"Expected no peaks in small q-range test, but got {q_1d.shape[0]} peaks"
+        assert intensity_1d.shape == (0,), \
+            f"Expected no intensity data in small q-range test, but got {len(intensity_1d)} entries"
+        assert len(mi_1d) == 0, f"Expected no MI data in small q-range test, but got {len(mi_1d)} entries"
 
     def test_giwaxs_sim_powder_no_mi(self, cif_file, exp_parameters):
         """Test GIWAXS simulation with powder pattern without MI return."""

@@ -1,84 +1,91 @@
 import numpy as np
+from numpy.typing import ArrayLike
 from typing import Union
 from pygidsim.directions import get_unique_directions
 
 
 class QPos:
     """
-    A class to calculate the q positions in 3d reciprocal space
-    ...
+    A class to calculate the q positions in 3d reciprocal space.
+
     Attributes
     ----------
     lat_par : np.ndarray
-        lattice parameters
-    mi : np.ndarray
-        miller indices
-    rec : np.ndarray
-        reciprocal vectors
-    q_3d : np.ndarray
-        peak positions in 3d reciprocal space
+        Lattice parameters.
+    _rec : np.ndarray
+        Reciprocal vectors.
 
     Methods
     -------
-    calculate_q3d():
-        calculates the q vectors in 3d reciprocal space
+    calculate_q3d(mi):
+        Calculates the q vectors in 3d reciprocal space.
     rotate_vect(orientation, baz):
-        rotate crystal
+        Rotate the crystal.
     """
 
     def __init__(self,
                  lat_par: np.ndarray,  # np.array([a,b,c,α,β,γ], dtype=np.float32)
-                 mi: np.ndarray  # 3d vectors - (E, 3) - [h, k, l]
                  ):
         self.lat_par = lat_par
-        self.mi = mi
-        self.rec, self.q_3d = self.calculate_q3d()
+        self._rec = self._calculate_rec()
 
-    def calculate_q3d(self):
-        """ Calculate q_3d vectors from lattice parameters and miller indices"""
-        try:
-            a1, a2, a3 = self._lattice_vectors_from_parameters()
-        except TypeError:
-            return None
+    def calculate_q3d(self, mi: np.ndarray):
+        """
+        Calculate q_3d vectors from lattice parameters and miller indices.
 
-        rec = self._calc_reciprocal_vectors(a1, a2, a3)
-        q_vectors = self.mi @ rec
-        return rec, q_vectors
+        Parameters
+        ---------
+        mi : np.ndarray
+            Miller indices.
+
+        Returns
+        -------
+        q_3d : np.ndarray
+            Peak positions in 3d reciprocal space.
+        """
+        if len(mi) == 0:
+            return np.array([], dtype=np.float32).reshape(0, 3)
+        q_vectors = mi @ self._rec
+        return q_vectors
 
     def rotate_vect(self,
-                    orientation: Union[None, str, np.ndarray],  # e.g. 'random' or np.array([0., 1., 0.])
+                    q_3d: np.ndarray,
+                    orientation: Union[None, str, ArrayLike],  # e.g. 'random' or np.array([0., 1., 0.])
                     baz: np.ndarray = np.array([0., 0., 1.], dtype=np.float32),  # basZ
                     dtype=np.float32) -> np.ndarray:
         """
-        Rotate crystal
+        Rotate the crystal.
 
         Parameters
         ----------
-            orientation : Union[str, np.ndarray]
-                orientation of the crystal growth
-            baz : torch.Tensor, optional
-                basis vector for the default orientation, default=np.array([0., 0., 1.], dtype=np.float32)
+        q_3d : np.ndarray
+            Peak positions in 3d reciprocal space.
+        orientation : str or np.ndarray
+            Orientation of the crystal growth.
+        baz : torch.Tensor, optional
+            Basis vector for the default orientation. Default is np.array([0., 0., 1.], dtype=np.float32).
 
-        Return
+        Returns
         -------
-            q_3d (np.ndarray): peak positions in 3d reciprocal space
+        q_3d : np.ndarray
+            Peak positions in 3d reciprocal space.
         """
         if orientation is None:
-            return self.q_3d
+            return q_3d
         elif isinstance(orientation, str):
             if orientation != 'random':
-                raise ValueError("orientation is not correct - use np.array with size (3,) or 'random'")
+                raise ValueError("orientation is not correct - use ArrayLike with size (3,) or 'random'")
             directions = get_unique_directions(5)
             orientation = directions[np.random.randint(len(directions))]  # choose one of the possible orientations
-        elif isinstance(orientation, np.ndarray) and orientation.shape == (3,):
-            orientation = orientation / np.linalg.norm(orientation, axis=0)
         else:
-            raise TypeError('orientation is not correct - use np.array with size (3,) or "random"')
+            orientation = np.asarray(orientation, dtype=np.float32)
+            assert orientation.shape == (3,), 'orientation is not correct - use ArrayLike with size (3,) or "random"'
+            orientation = orientation / np.linalg.norm(orientation, axis=0)
 
         if np.array_equal(baz, orientation):
-            return self.q_3d
+            return q_3d
 
-        orient = orientation @ self.rec
+        orient = orientation @ self._rec
 
         v1 = orient / np.linalg.norm(orient, axis=0)
         v2 = baz / np.linalg.norm(baz, axis=0)
@@ -109,12 +116,22 @@ class QPos:
         )
 
         R = np.stack((a_1, a_2, a_3), dtype=dtype)
-        q_rot = self.q_3d @ R
+        q_rot = q_3d @ R
 
         return q_rot
 
-    def _lattice_vectors_from_parameters(self, vol_min=11, dtype=np.float32):
-        """Return lattice vectors corresponding to lattice parameters"""
+    @property
+    def rec(self) -> np.ndarray:
+        """Return reciprocal lattice vectors."""
+        return self._rec
+
+    def _calculate_rec(self) -> np.ndarray:
+        """Calculate reciprocal lattice vectors."""
+        a1, a2, a3 = self._lattice_vectors_from_parameters()
+        return self._calc_reciprocal_vectors(a1, a2, a3)
+
+    def _lattice_vectors_from_parameters(self, vol_min=10, dtype=np.float32):
+        """Return lattice vectors corresponding to lattice parameters."""
         pi = np.pi
         a, b, c = self.lat_par[:3]
         alpha, beta, gamma = self.lat_par[3:] * pi / 180
@@ -146,7 +163,7 @@ class QPos:
                                  a3: np.ndarray,
                                  dtype=np.float32
                                  ) -> np.ndarray:
-        """Return vectors in reciprocal space corresponding to lattice vectors"""
+        """Return vectors in reciprocal space corresponding to lattice vectors."""
         pi = np.pi
 
         unit_volume = np.dot(a1, np.cross(a2, a3, axis=0))

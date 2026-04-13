@@ -65,7 +65,11 @@ run the following:
 from pygidsim.experiment import ExpParameters
 from pygidsim.giwaxs_sim import GIWAXSFromCif
 
-params = ExpParameters(q_xy_max=2.7, q_z_max=2.7, en=18000)  # experimental parameters
+params = ExpParameters(
+    q_xy_range=(0, 2.7),
+    q_z_range=(0, 2.7),
+    en=18000
+)  # experimental parameters
 el = GIWAXSFromCif(path_to_cif, params)
 q_2d, intensity = el.giwaxs.giwaxs_sim()  # q_2d is array with shape (2, peaks number)
 
