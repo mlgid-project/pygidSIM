@@ -14,6 +14,7 @@ addopts = [
     "--strict-config",
     "--color=yes",
     "--durations=10",
+    "--disable-warnings",
     "--cov=pygidsim",
     "--cov-report=term-missing",
     "--cov-report=html",

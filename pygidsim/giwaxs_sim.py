@@ -22,7 +22,7 @@ class Crystal:
     Attributes
     ----------
     lat_par : ArrayLike
-        Lattice parameters: np.array([a, b, c, α, β, γ]).
+        Lattice parameters: [a, b, c, α, β, γ].
     spgr : str or int
         Space group number (1-230).
     cr_group : int
@@ -69,14 +69,24 @@ class Crystal:
         self.lat_par = lat_par
         self.spgr = spgr
         self.cr_group = self._cr_group()
-        self._param_SGL = self._parameters_for_SGLattice()
         self.atoms = atoms
         self.atom_positions = atom_positions
         self.occ = occ
         self.scale = scale
 
     def _cr_group(self) -> Union[str, int]:
-        """Return the crystal group from the space group."""
+        """
+        Determine crystal group (1-7) from space group number.
+
+        Crystal system ranges:
+        1: Triclinic (SG 1-2)
+        2: Monoclinic (SG 3-15)
+        3: Orthorhombic (SG 16-74)
+        4: Tetragonal (SG 75-142)
+        5: Trigonal (SG 143-167)
+        6: Hexagonal (SG 168-194)
+        7: Cubic (SG 195-230)
+        """
         cr_list = [(1, 2), (3, 15), (16, 74), (75, 142), (143, 167), (168, 194), (195, 230)]
         spgr_list = str(self.spgr).split(':')
         spgr_num = int(spgr_list[0])
@@ -86,18 +96,6 @@ class Crystal:
                     return '5:R'
                 return idx + 1
         raise AttributeError('space group should be in range 1-231')
-
-    def _parameters_for_SGLattice(self) -> np.ndarray:
-        """Return the unique lattice parameters that are needed to receive miller indices."""
-        parameters_for_hkl = {1: (0, 1, 2, 3, 4, 5),  # return [a, b, c, alpha, beta, gamma] - triclinic
-                              2: (0, 1, 2, 4),  # return [a, b, c, beta] - monoclinic
-                              3: (0, 1, 2),  # return [a, b, c] - orthorhombic
-                              4: (0, 2),  # return [a, c] - tetragonal
-                              5: (0, 2),  # return [a, c] - trigonal - HEX
-                              '5:R': (0, 3),  # return [a, alpha] - trigonal - RHOMB
-                              6: (0, 2),  # return [a, c] - hexagonal
-                              7: (0,)}  # return [a] - cubic
-        return self.lat_par[parameters_for_hkl[self.cr_group]]
 
 
 class GIWAXS:
@@ -233,10 +231,11 @@ class GIWAXS:
 
         Parameters
         ----------
-        orientation : Union[str, np.ndarray], optional
-            Orientation of the crystal growth (e.g. 'random' or np.array([0., 1., 0.]),
-            default = np.array([0., 0., 1.])
-            if None - no orientation (powder diffraction).
+        orientation : Union[str, ArrayLike, None], optional
+            Orientation of the crystal growth:
+            - None: Powder diffraction (1D pattern).
+            - 'random': Random orientation for each calculation (2D pattern).
+            - ArrayLike: Specific orientation vector.
         max_mi: Optional[int], optional
             Restrict the maximum Miller Index.
         return_mi : bool, optional
@@ -438,8 +437,8 @@ class GIWAXS:
         return q_2d_fin, int_fin, None
 
     @staticmethod
-    def _concat_mi(mi,
-                   clusters) -> List[np.ndarray]:
+    def _concat_mi(mi: np.ndarray,
+                   clusters: np.ndarray) -> List[np.ndarray]:
         """Concatenate 'the same mi' together."""
         unique_clusters = np.unique(clusters)
         mi_new = []
@@ -450,7 +449,7 @@ class GIWAXS:
         return mi_new
 
     @staticmethod
-    def _return_empty(dim) -> Tuple[np.ndarray, np.ndarray, List]:
+    def _return_empty(dim: int) -> Tuple[np.ndarray, np.ndarray, List]:
         """Return empty pattern."""
         if dim == 2:
             q_fin = np.array([], dtype=np.float32).reshape(2, 0)
