@@ -6,8 +6,9 @@ This directory contains the test suite for pygidsim using pytest.
 
 - `conftest.py` - Shared fixtures and pytest configuration
 - `test_cif.py` - Tests for CIF-based GIWAXS simulations
-- `test_sglattice.py` - Tests for SGLattice-based GIWAXS simulations  
+- `test_sglattice.py` - Tests for SGLattice-based GIWAXS simulations
 - `test_crystal.py` - Tests for Crystal-based GIWAXS simulations
+- `test_compatibility.py` - Tests for compatibility with different versions of dependencies
 
 ## Running Tests
 

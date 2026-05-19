@@ -47,7 +47,7 @@ class Crystal:
                  ):
         lat_par = np.asarray(lat_par, dtype=np.float32)
         if lat_par.shape != (6,):
-            raise ValueError('lat_par should be a numpy array with 6 elements')
+            raise ValueError('lat_par should be an ArrayLike element with 6 elements')
         if (atoms is not None) and (atom_positions is not None):
             atoms = np.asarray(atoms)
             atom_positions = np.asarray(atom_positions, dtype=np.float32)
@@ -195,7 +195,7 @@ class GIWAXS:
             if (h, k, l) in hkltested:
                 return
             q = (h, k, l) @ self.rec
-            if np.sqrt(q[0] ** 2 + q[1] ** 2 + q[2] ** 2) >= q_max:
+            if np.sqrt(q[0] ** 2 + q[1] ** 2 + q[2] ** 2) > q_max:
                 return
             eqhkl = set()
             eqhkl.add((h, k, l))
@@ -221,7 +221,7 @@ class GIWAXS:
         return self._mi
 
     def giwaxs_sim(self,
-                   orientation: Optional[Union[str, ArrayLike]] = np.array([0., 0., 1.]),
+                   orientation: Optional[Union[str, ArrayLike, None]] = np.array([0., 0., 1.]),
                    max_mi: Optional[int] = None,
                    return_mi: bool = False,
                    move_fromMW: bool = False,
@@ -236,6 +236,7 @@ class GIWAXS:
             - None: Powder diffraction (1D pattern).
             - 'random': Random orientation for each calculation (2D pattern).
             - ArrayLike: Specific orientation vector.
+            Default is [001].
         max_mi: Optional[int], optional
             Restrict the maximum Miller Index.
         return_mi : bool, optional
