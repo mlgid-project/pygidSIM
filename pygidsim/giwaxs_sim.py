@@ -425,7 +425,7 @@ class GIWAXS:
 
         # apply q_range limits after the mirroring
         q_mask = ((q_2d_fin[0] >= q_xy_range[0]) &
-                  (q_2d_fin[1] <= q_xy_range[1]))
+                  (q_2d_fin[0] <= q_xy_range[1]))
         q_2d_fin = q_2d_fin[:, q_mask]
         int_fin = int_fin[q_mask]
 
